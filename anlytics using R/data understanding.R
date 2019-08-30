@@ -2,6 +2,9 @@
 # clear environment (objects and packages)
 rm(list = ls(all.names = TRUE))
 
+# Clear packages
+pacman::p_unload(rgl)
+
 # clear plots
 if(!is.null(dev.list())) dev.off() # or graphics.off()
 
@@ -25,7 +28,8 @@ FTrials <- select(FTrials, "user_id","date","source","device","payee","browser",
 # save it in csv for future use
 write.csv(FTrials,file = "merged_trial_results.csv")
 
-#FTrials <- read.csv('merged_trial_results.csv')
+FTrials <- read.csv('merged_trial_results.csv')
+FTrials <- FTrials[c(2:12)]
 
 ### Task 2: Pre-process (Statistical Analysis)
 
@@ -40,65 +44,86 @@ library('dplyr')
 library('psych')
 
 # check if categorial data have unknown/unidentified values
-distinct(FTrials, age, .keep_all = FALSE) #dplyr
-
-# filter data for each group, if needed
-# FTrials_control <- filter(FTrials, group == 'Control')
-# FTrials_test <- filter(FTrials, group == 'Test')
+table(FTrials$source)
+table(FTrials$device)
+table(FTrials$payee)
+table(FTrials$browser)
+table(FTrials$sex)
+table(FTrials$industry_code)
+table(FTrials$group)
+# or use dplyr distinct(FTrials, age, .keep_all = FALSE)
 
 glimpse(FTrials) # dplyr
 describe(FTrials) #psych
 
 # correlation of numeric fields
 
-# first convert categorical features to numeric
-FTrialsNum <- select(FTrials, "date","source","device","payee","browser","sex","age",
+# first convert categorical features to numeric - mapping
+FTrialsNum <- select(FTrials, "user_id","date","source","device","payee","browser","sex","age",
                      "industry_code","group","trial")
-directions <- NULL
-directions.factor <- NULL
-directions <- FTrialsNum$group
-directions.factor <- factor(directions)
-FTrialsNum$group <- as.numeric(directions.factor)
-# FTrialsNum$date <- as.numeric(as.character(as.Date(directions.factor, format = '%m/%d/%Y'), format = '%Y%m%d'))
+FTrialsNum$date <- as.numeric(as.character(as.Date(FTrialsNum$date, format = '%m/%d/%Y'), format = '%Y%m%d'))
+FTrialsNum$source <- as.numeric(factor(FTrials$source))
+FTrialsNum$device <- as.numeric(factor(FTrials$device))
+FTrialsNum$payee <- as.numeric(factor(FTrials$payee))
+FTrialsNum$browser <- as.numeric(factor(FTrials$browser))
+FTrialsNum$sex <- as.numeric(factor(FTrials$sex))
+FTrialsNum$industry_code <- as.numeric(factor(FTrials$industry_code))
+FTrialsNum$group <- as.numeric(factor(FTrials$group))
 
-# write.csv(FTrialsNum,file = "merged_trial_results_numMap.csv")
+# save in csv for future use
+write.csv(FTrialsNum,file = "merged_trial_results_numMap.csv")
 
-FTrialsNum <- read.csv('merged_trial_results_numMap.csv')
+#FTrialsNum <- read.csv('merged_trial_results_numMap.csv')
 
 str(FTrialsNum)
 names(FTrialsNum)
-cor(FTrialsNum, FTrialsNum$trial, use = 'complete.obs')
+describe(FTrialsNum)
 
-# not much information in correlation with mapping, re-try with dummy variables
+cor(FTrialsNum, use = 'complete.obs', method = 'pearson')
+cor(FTrialsNum, use = 'complete.obs', method = 'kendall')
+cor(FTrialsNum, use = 'complete.obs', method = 'spearman')
+
+# Input features show very weak correlation with TV trial
+# Input features do NOT show cor=1 among each other (so No duplicates)
+# Now check corr with dummy variables
 
 #install.packages('dummies')
 library('dummies')
 # create dummies for all factor variables in FTrials
 str(FTrials)
 names(FTrials)
-FTrials.dummy <- dummy.data.frame(select(FTrials, "date","source","device","payee","browser","sex", "age", "industry_code","group","trial"),
+FTrials.dummy <- dummy.data.frame(select(FTrials, "user_id","date","source","device","payee","browser","sex", "age",
+                                         "industry_code","group","trial"),
                                   names = c("date","source","device","payee","browser","sex","industry_code","group"), 
                                   sep = '.')
 names(FTrials.dummy)
 
-cor(FTrials.dummy,FTrials.dummy$trial, use = 'complete.obs')
+cor(FTrials.dummy,FTrials.dummy$trial, use = 'complete.obs', method = 'pearson')
+cor(FTrials.dummy,FTrials.dummy$trial, use = 'complete.obs', method = 'kendall')
+cor(FTrials.dummy,FTrials.dummy$trial, use = 'complete.obs', method = 'spearman')
 
+# Data is high dimensional 48 features so
 # now select (n-1) & aggregate dummy variables
-newFTrials.dummy <- select(FTrials.dummy, "date.1/10/2017", "date.1/3/2017", "date.1/4/2017", "date.1/5/2017", "date.1/6/2017", "date.1/7/2017", "date.1/8/2017", "date.1/9/2017",
+newFTrials.dummy <- select(FTrials.dummy, "user_id",
+       "date.1/10/2017", "date.1/3/2017", "date.1/4/2017", "date.1/5/2017", "date.1/6/2017", "date.1/7/2017",
+       "date.1/8/2017", "date.1/9/2017",
        "source.Email", "source.Facebook", 
        "device.desktop", 
-       "payee.Non-Primary", 
+       "payee.Non-Primary", "payee.Primary",
        "browser.Android (In-App)", "browser.Chrome", "browser.FireFox", "browser.IE", "browser.iOS (In-App)", "browser.Opera",
        "sex.F", 
        "age",
-       "industry_code.AOR", "industry_code.BOR", "industry_code.CIL", "industry_code.DUR", "industry_code.GRT", "industry_code.ICG", "industry_code.LPC", "industry_code.LPK", "industry_code.LPP", "industry_code.MFE", "industry_code.MFG", "industry_code.PGG", "industry_code.PWO", "industry_code.RCA", "industry_code.RGA", "industry_code.SPC", "industry_code.TRV",
+       "industry_code.AOR", "industry_code.BOR", "industry_code.CIL", "industry_code.DUR", "industry_code.GRT", "industry_code.ICG",
+       "industry_code.LPC", "industry_code.LPK", "industry_code.LPP", "industry_code.MFE", "industry_code.MFG", "industry_code.PGG",
+       "industry_code.PWO", "industry_code.RCA", "industry_code.RGA", "industry_code.SPC",
        "group.Control", "trial")
 
 newFTrials.dummy <- newFTrials.dummy %>% 
-  transmute(date = rowSums(.[grep("date.*", names(.))], na.rm = TRUE),
+  transmute(user_id = user_id,
+         date = rowSums(.[grep("date.*", names(.))], na.rm = TRUE),
          source = rowSums(.[grep("source.*", names(.))], na.rm = TRUE),
-         device = `device.desktop`,
-         payee = `payee.Non-Primary`,
+         device = device.desktop,
+         payee = rowSums(.[grep("payee.*", names(.))], na.rm = TRUE),
          browser = rowSums(.[grep("browser.*", names(.))], na.rm = TRUE),
          sex = sex.F,
          age = age,
@@ -107,17 +132,24 @@ newFTrials.dummy <- newFTrials.dummy %>%
          trial = trial
          )
 
-distinct(newFTrials.dummy$industry)
+table(newFTrials.dummy$industry)
 
-# write.csv(newFTrials.dummy,file = "merged_trial_results_dummy.csv")
+# save in csv for future use
+write.csv(newFTrials.dummy,file = "merged_trial_results_dummy.csv")
 
-cor(newFTrials.dummy, newFTrials.dummy$trial, use = 'complete.obs')
+FTrials.dummy <- read.csv('merged_trial_results_dummy.csv')
+
+describe(newFTrials.dummy)
+
+cor(newFTrials.dummy, newFTrials.dummy$trial, use = 'complete.obs', method = 'pearson')
+cor(newFTrials.dummy, newFTrials.dummy$trial, use = 'complete.obs', method = 'kendall')
+cor(newFTrials.dummy, newFTrials.dummy$trial, use = 'complete.obs', method = 'spearman')
 
 ### Task 3: Data Visualization
 
 library('ggplot2')
 
-# check skewness of numeric feature
+# check skewness of numeric features
 hist(FTrials$age, col = 'red') # histogram
 
 plot(density(filter(FTrials, FTrials$age != 'NA')$age)) # kernel desnity plot
@@ -144,23 +176,8 @@ boxplot(FTrials$age ~ FTrials$trial, FTrials, xlab = 'Type of trial', ylab = 'Ag
 
 # scatter plot
 
-corFtrial <- round(cor(FTrialsNum, use = 'complete.obs'), 5)
-corFtrial <- cor(FTrialsNum, use = 'complete.obs')
-head(corFtrial)
+ggplot(FTrialsNum, aes(x=age, y=trial)) + geom_point(na.rm = TRUE, color='blue', alpha=.25)
 
-# package reshape is required to melt the correlaion matrix:
-library('reshape2')
-melted_corFtrial <- melt(corFtrial)
-head(corFtrial)
+#check if data is linearly separable
+ggplot(FTrialsNum, aes(x=age, y=user_id,color=factor(trial))) + geom_point()
 
-ggplot(melted_corFtrial)
-
-### Task 4: How to fix data quality issues
-
-# transform age to fix skewness - john tukey ladder
-head(log(FTrials$age))
-
-hist(log(FTrials$age, 2), col = 'red') # histogram
-
-# convert trial from int to factor
-FTrials$trial <- factor(FTrials$trial, levels = c(0,1))
