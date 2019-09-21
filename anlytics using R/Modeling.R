@@ -16,7 +16,14 @@ setwd("U:/projects/data Science/freemium-AB-testing/anlytics using R")
 FTrials <- read.csv('control_trial_results_dummy.csv')
 FTrials <- FTrials[c(2:11)]
 
-FTrials$trial <- factor(FTrials$trial, levels = c(0,1))
+FTrials$trial <- factor(FTrials$trial)
+FTrials$date <- factor(FTrials$date)
+FTrials$source <- factor(FTrials$source)
+FTrials$device <- factor(FTrials$device)
+FTrials$payee <- factor(FTrials$payee)
+FTrials$browser <- factor(FTrials$browser)
+FTrials$sex <- factor(FTrials$sex)
+FTrials$industry_code <- factor(FTrials$industry_code, level = levels(as.factor(FTrials$industry_code)))
 str(FTrials)
 
 ### Task 1: select the model - check assumptions
@@ -26,7 +33,7 @@ str(FTrials)
 #        4) All Input variables must be numeric (Dummy)                       True
 #        5) No missing values (complete.cases)                                True
 #        6) TV is binary 0/1                                                  True
-#        7) Data is linearly seprable (Scatter plot)                          True
+#        7) Data is linearly seprable (Scatter plot)                          False
 
 ### So build/Compare Decision Tree, K Nearest Neighbor, Logistic Regression & K-SVM
 
@@ -44,7 +51,7 @@ test_set <- subset(FTrials, split == FALSE)
 ### Task 3: Scale data if needed
 
 #######################################################################################################
-### Feature Scaling
+### Feature Scaling - For KNN & Logistic Regression
 #######################################################################################################
 
 training_set[-10] = scale(training_set[-10]) 
