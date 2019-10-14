@@ -11,9 +11,9 @@ if(!is.null(dev.list())) dev.off() # or graphics.off()
 cat('\014') # or ctrl + L
 
 getwd()
-setwd("U:/projects/data Science/freemium-AB-testing/data")
+setwd("D:/Data Science/git projects/freemium-ab-testing/anlytics using R")
 
-FTrials <- read.csv('merged_trial_results_dummy.csv')
+FTrials <- read.csv('merged_trial_results_numMap.csv')
 FTrials <- FTrials[c(2:12)]
 
 str(FTrials)
@@ -44,19 +44,21 @@ FTrials <- mutate(FTrials, age_trans=age^(1/40))
 FTrials <- FTrials[c(2:7, 12,9,10,11)]
 # After transformation Age skewness reduced from 0.74 to 0.37 but NOT Zero. 
 # So will use Original Age without transaformation.
-
+df <- filter(FTrials, age < 28)
+names(FTrials)
+str(FTrials)
 
 ### Task 2: prepare data to feed into model
 # like convert categorical features to numeric - mapping/dummy variables
 
 # filter data for each group
-FTrials_control <- filter(FTrials, group == '1') # Control
+FTrials_control <- filter(FTrials, group == 1) # Control
 FTrials_control <- FTrials_control[-10] # drop feature "group"
 str(FTrials_control)
-FTrials_test <- filter(FTrials, group == '0') # test
+FTrials_test <- filter(FTrials, group == 2) # test
 FTrials_test <- FTrials_test[-10] # drop feature "group"
 str(FTrials_test)
 
 # save in csv file to build models
-write.csv(FTrials_control, 'control_trial_results_dummy.csv')
-write.csv(FTrials_test, 'test_trial_results_dummy.csv')
+write.csv(FTrials_control, 'control_trial_results_numMap.csv')
+write.csv(FTrials_test, 'test_trial_results_numMap.csv')

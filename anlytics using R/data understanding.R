@@ -141,9 +141,9 @@ FTrials.dummy <- read.csv('merged_trial_results_dummy.csv')
 
 describe(newFTrials.dummy)
 
-cor(newFTrials.dummy, newFTrials.dummy$trial, use = 'complete.obs', method = 'pearson')
-cor(newFTrials.dummy, newFTrials.dummy$trial, use = 'complete.obs', method = 'kendall')
-cor(newFTrials.dummy, newFTrials.dummy$trial, use = 'complete.obs', method = 'spearman')
+cor(FTrials, FTrials$trial, use = 'complete.obs', method = 'pearson')
+cor(FTrials, FTrials$trial, use = 'complete.obs', method = 'kendall')
+cor(FTrials, FTrials$trial, use = 'complete.obs', method = 'spearman')
 
 ### Task 3: Data Visualization
 
