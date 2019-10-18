@@ -11,7 +11,7 @@ if(!is.null(dev.list())) dev.off() # or graphics.off()
 cat('\014') # or ctrl + L
 
 getwd()
-setwd("U:/projects/data Science/freemium-AB-testing/anlytics using R")
+setwd("D:/Data Science/git projects/freemium-ab-testing/anlytics using R")
 
 FTrials <- read.csv('control_trial_results_dummy.csv')
 FTrials <- FTrials[c(2:11)]

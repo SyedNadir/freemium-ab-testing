@@ -12,7 +12,7 @@ if(!is.null(dev.list())) dev.off() # or graphics.off()
 cat('\014') # or ctrl + L
 
 getwd()
-setwd("U:/My Docs/Data Science/14 weeks training/Projects/AB Testing/data")
+setwd("D:/Data Science/git projects/freemium-ab-testing/anlytics using R")
 
 ### Task 1: Consolidate data into one table
 
